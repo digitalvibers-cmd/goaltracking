@@ -33,7 +33,14 @@ export async function syncActivityToCalendar(activityId: string, goalId: string)
     }
 
     // Create calendar event
-    const event = {
+    const event: {
+        summary: string;
+        description: string;
+        start: { dateTime: string; timeZone: string };
+        end: { dateTime: string; timeZone: string };
+        reminders: { useDefault: boolean; overrides: { method: string; minutes: number }[] };
+        recurrence?: string[];
+    } = {
         summary: activity.title,
         description: `Goal: ${activity.goals?.title}\n\n${activity.description || ""}`,
         start: {

@@ -13,7 +13,14 @@ type Activity = {
     goal: {
         title: string;
         category: string;
-    };
+    } | null;
+};
+
+type ActivityFromSupabase = Omit<Activity, 'goal'> & {
+    goal: {
+        title: string;
+        category: string;
+    }[] | null;
 };
 
 export default async function CalendarPage() {
@@ -51,13 +58,20 @@ export default async function CalendarPage() {
     }
 
     // Group activities by date
-    const groupedActivities = (activities || []).reduce((acc, activity) => {
+    const groupedActivities = ((activities as ActivityFromSupabase[]) || []).reduce((acc, activity) => {
         if (activity.scheduled_at) {
             const date = new Date(activity.scheduled_at).toDateString();
             if (!acc[date]) {
                 acc[date] = [];
             }
-            acc[date].push(activity as Activity);
+            // Convert Supabase array format to single object
+            const normalizedActivity: Activity = {
+                ...activity,
+                goal: Array.isArray(activity.goal) && activity.goal.length > 0
+                    ? activity.goal[0]
+                    : null
+            };
+            acc[date].push(normalizedActivity);
         }
         return acc;
     }, {} as Record<string, Activity[]>);
